@@ -5,9 +5,8 @@
 import React from 'react';
 import { useState } from 'react';
 import  Navigation  from './Navigation';
-import IncomeHandler from '../../atoms/IncomeHandler';
-import BillForm from '../../atoms/BillForm';
 import BillPanel from './BillPanel';
+import ExpenseFilter from '../../atoms/ExpenseFilter';
 
 
 const MainScreen = () => {

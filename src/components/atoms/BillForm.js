@@ -27,7 +27,7 @@ const BillForm = (props) => {
   const frequencyDropdown = () => {
     return (
       <select
-        className={`flex flex-row h-2/6 w-full bg-violet-100 rounded-lg py-2 px-5 my-1 font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right text-gray-400`}
+        className={`flex flex-row h-2/6 w-full bg-violet-100 rounded-lg py-2 my-1 font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right text-gray-400`}
         id="frequency"
         value={frequency}
         onChange={(e) => setFrequency(e.target.value)}
@@ -41,7 +41,7 @@ const BillForm = (props) => {
   };
 
   return (
-    <table className="">
+    <table className="w-4/6">
       <tr>
         <td className="my-2">
           <input
