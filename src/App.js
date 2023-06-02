@@ -5,7 +5,7 @@ import Calendar from './components/atoms/Calendar';
 import HomeScreen from './components/organisms/Containers/Home';
 function App() {
   return (
-    <div className="App">
+    <div className="App font-Nunito">
       <HomeScreen />
     </div>
   );

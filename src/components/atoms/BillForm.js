@@ -4,43 +4,30 @@ const BillForm = (props) => {
   const [bill, setBill] = useState('');
   const [amount, setAmount] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [hidden, setHidden] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [frequency, setFrequency] = useState('monthly');
 
-  const [color, setColor] = useState(
-    'bg-violet-500 hover:bg-violet-700'
-  );
-
-  
-
+  //create a function to handle the bill form and returns the bill as an object with the name, amount, due date, frequency, and paid status
   const handleSubmit = () => {
-    setColor('bg-green-500 hover:bg-green-700');
-    props.handleaddBill(bill, dueDate, amount);
-    hideBill();
+    props.handleBill({
+      name: bill,
+      amount: parseFloat(amount),
+      dueDate: dueDate,
+      frequency: frequency,
+      paid: false,
+    });
+    setBill('');
+    setAmount('');
+    setDueDate('');
+    setFrequency('monthly');
   };
 
 
-
-  const hideBill = () => {
-    setHidden(!hidden);
-  }
-
-  const formatDate = (date) => {
-    const d = new Date(date);
-    let month = '' + (d.getMonth() + 1);
-    let day = '' + (d.getDate() + 1);
-    const year = d.getFullYear();
-
-
-    return [month, day, year].join('-');
-  };
 
   //create a dropdown menu for the bill frequency
   const frequencyDropdown = () => {
     return (
       <select
-        className="border p-3 border-gray-200 bg-gray-200 w-full rounded-xl text-gray-400 text-right hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent"
+        className={`flex flex-row h-2/6 w-full bg-violet-100 rounded-lg py-2 px-5 my-1 font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right text-gray-400`}
         id="frequency"
         value={frequency}
         onChange={(e) => setFrequency(e.target.value)}
@@ -53,80 +40,64 @@ const BillForm = (props) => {
     );
   };
 
-  
-
-  const hiddenBill = () => {
-    if (hidden) {
-      return (
-        <div className={`${color} border-violet-900 p-3 flex grid-flow-col rounded-xl w-full shadow-md`}> 
-        <button className={`p-2 w-full text-white text-xs rounded-xl`} onClick={hideBill}>
-         <p className='float-left'> {bill} </p>
-         <p className='float-right'> {formatDate(dueDate)} </p>
-
-        </button>
-        </div>
-      )
-    }
-    else {
-      return (
-          <table className="">
-            <tr>
-            <td className="py-3">
-                <input
-                  className="border p-3 border-gray-200 bg-gray-200 w-full rounded-xl text-right text-gray-700 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent"
-                  type="text"
-                  id="bill"
-                  value={bill}
-                  onChange={(e) => setBill(e.target.value)}
-                  placeholder="Bill Name"
-                />
-              </td>
-            </tr>
-            <tr>
-              <td className="py-3">
-                <input
-                  className="border p-3 border-gray-200 bg-gray-200 w-full rounded-xl  text-gray-700 text-right hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent"
-                  type="number"
-                  id="amount"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Amount"
-                />
-              </td>
-            </tr>
-            <tr>
-            <td className="py-3">
-                <input
-                  className="border p-3 border-gray-200 bg-gray-200 w-full rounded-xl  text-gray-400 text-right hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent"
-                  type="date"
-                  id="due-date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                />
-              </td>
-              </tr> 
-              <tr>
-              <td className="py-3">
-                {frequencyDropdown()}
-                </td>
-
-              </tr>
-              <tr>
-              <td className="py-3">
-                <button onClick={() => handleSubmit() }className="bg-indigo-500 hover:bg-indigo-700 p-3 w-full text-white text-xs rounded-xl">
-                  Submit
-                </button>
-              </td>
-            </tr>
-          </table>
-
-      );
-    }
-  }
   return (
-    hiddenBill() 
+    <table className="">
+      <tr>
+        <td className="my-2">
+          <input
+            className={`flex flex-row h-2/6 w-full bg-violet-100 rounded-lg py-2 px-5 my-1 font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right text-gray-400`}
+            type="text"
+            id="bill"
+            value={bill}
+            onChange={(e) => setBill(e.target.value)}
+            placeholder="Bill Name"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td className="my-2">
+          <input
+            className={`flex flex-row h-2/6 w-full bg-violet-100 rounded-lg py-2 px-5 my-1 font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right text-gray-400`}
+            type="number"
+            id="amount"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Amount"
+          />
+        </td>
+      </tr>
+      <tr>
+        <td className="my-2">
+          <input
+            className={`flex flex-row h-2/6 w-full bg-violet-100 rounded-lg py-2 px-5 my-1 font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right text-gray-400`}
+            type="date"
+            id="due-date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+          />
+        </td>
+      </tr>
+      <tr>
+        <td className="my-2">
+          {frequencyDropdown()}
+        </td>
+      </tr>
+      <tr>
+        <td className="my-2">
+          <button
+            className={`flex flex-row justify-center items-center h-2/6 w-full bg-violet-400 rounded-lg py-2 px-5 my-1 font-bold focus:outline-none focus:ring-2 focus:ring-violet-500  text-violet-600 hover:bg-violet-500 hover:text-white`}
+            type="submit"
+            onClick={handleSubmit}
+          >
+            Add Bill
+          </button>
 
+        </td>
+      </tr>
+
+    </table>
   );
+
 };
 export default BillForm;
 

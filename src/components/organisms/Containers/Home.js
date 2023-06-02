@@ -7,6 +7,7 @@ import { useState } from 'react';
 import  Navigation  from './Navigation';
 import IncomeHandler from '../../atoms/IncomeHandler';
 import BillForm from '../../atoms/BillForm';
+import BillPanel from './BillPanel';
 
 
 const MainScreen = () => {
@@ -56,12 +57,12 @@ const MainScreen = () => {
                         <h1 className="text-xl"> {greeting()} Leah </h1>
                     </div>
                 </div>
-                <div className="flex flex-row justify-center items-center h-3/4 bg-violet-100">
+                <div className="flex flex-row justify-center items-center h-5/6 bg-violet-100">
                     <div className="flex flex-col justify-center items-center h-full w-10/12 bg-lime-300">
                         <h1 className="text-4xl"> Main Content </h1>
                     </div>
                     <div className="flex flex-col justify-center items-center h-full w-3/6 bg-amber-300">
-                       <BillForm/>
+                       <BillPanel/>
                     </div>
                 </div>
             </div>
