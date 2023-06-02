@@ -36,11 +36,11 @@ const IncomeHandler = ({incomeState, handleIncome}) => {
             <tr>
                 <td className="my-2">
                     <input
-                        className={`flex flex-row h-2/6 w-full bg-violet-100 rounded-lg py-2 px-5 my-1 font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right text-gray-400 disabled`}
+                        className={`flex flex-row h-2/6 w-full bg-violet-100 rounded-lg py-2 px-5 my-1 font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right text-gray-400 `}
                         type="text"
                         id="bill"
                         value="Income"
-                        placeholder="Bill Name"
+                        placeholder="Income"
                     />
                 </td>
             </tr>

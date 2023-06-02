@@ -10,7 +10,8 @@ import IncomeHandler from '../../atoms/IncomeHandler';
 const BillPanel = () => {
 
     const names = ['Rent', 'Car Payment', 'Car Insurance', 'Groceries', 'Utilities', 'Internet'];
-
+    const [selectedItem, setSelectedItem] = useState({});
+    const [initialIncomeInput, setInitialIncomeInput] = useState(0);
 
     function getRandomInt(min, max) {
         min = Math.ceil(min);
@@ -70,10 +71,12 @@ const BillPanel = () => {
     }
 
     //create a function to calculate the total amount of bills
-    const totalBills = () => {
+    const amountDue = () => {
         let total = 0;
         for (let i = 0; i < billState.bills.length; i++) {
-            total += billState.bills[i].amount;
+            if (billState.bills[i].paid === false) {
+                total += billState.bills[i].amount;
+            }
         }
         return total;
     }
@@ -109,7 +112,7 @@ const BillPanel = () => {
         let baseDate = new Date(incomeState.dueDate);
         for (let i = 0; i < number; i++) {
             let income = {
-                name: "income",
+                name: "Paycheck",
                 amount: incomeState.amount,
                 dueDate: getNextDate(baseDate, incomeState.frequency),
                 paid: false,
@@ -118,8 +121,6 @@ const BillPanel = () => {
             }
             incomes.push(income);
             baseDate = new Date(income.dueDate);
-
-            console.log(baseDate);
             
         }
         return incomes;
@@ -130,34 +131,39 @@ const BillPanel = () => {
         incomes: initializeIncomeState(8),
     });
 
-    // create a function to handle the income panel and add the income to the incomeState
+      // make a useState for combined list of bills and incomes
+      const [combinedList, setCombinedList] = useState({
+        combined: billState.bills.concat(incomeStateList.incomes).sort((a, b) => (a.dueDate > b.dueDate) ? 1 : -1),
+    });
+
+
     const handleIncome = (income) => {
-        setIncomeState({
+        const newIncomeState = {
             name: "income",
             amount: income.amount,
             dueDate: income.dueDate,
             paid: false,
             frequency: income.frequency,
             category: 'income',
-        });
-        setIncomeStateList({
+        };
+    
+        const newIncomeStateList = {
             incomes: initializeIncomeState(8),
-        });
-        combineAndFilter();
-
-    }
-
-    // make a useState for combined list of bills and incomes
-    const [combinedList, setCombinedList] = useState({
-        combined: billState.bills.concat(incomeStateList.incomes).sort((a, b) => (a.dueDate > b.dueDate) ? 1 : -1),
-    });
-
-    // create a function combine the list of bills and incomes and set to combinedList and filter by ascending date
-    const combineAndFilter = () => {
+        };
+        
+        setIncomeState(newIncomeState);
+        setIncomeStateList(newIncomeStateList);
+    
         setCombinedList({
-            combined: billState.bills.concat(incomeStateList.incomes).sort((a, b) => (a.dueDate > b.dueDate) ? 1 : -1),
+            combined: billState.bills.concat(newIncomeStateList.incomes).sort((a, b) => (a.dueDate > b.dueDate) ? 1 : -1),
         });
     }
+    
+  
+   
+    
+
+   
 
 // 
 
@@ -239,30 +245,30 @@ const BillPanel = () => {
             bills: tempBills,
         });
 
-        //update due date based on frequency
-        if (bill.paid) {
-            let newDate = new Date(bill.dueDate);
-            if (bill.frequency === 'monthly') {
-                newDate.setMonth(newDate.getMonth() + 1);
-            } else if (bill.frequency === 'biweekly') {
-                newDate.setDate(newDate.getDate() + 14);
-            } else if (bill.frequency === 'weekly') {
-                newDate.setDate(newDate.getDate() + 7);
-            }
-            bill.dueDate = newDate.toISOString().split('T')[0];
+        // //update due date based on frequency
+        // if (bill.paid) {
+        //     let newDate = new Date(bill.dueDate);
+        //     if (bill.frequency === 'monthly') {
+        //         newDate.setMonth(newDate.getMonth() + 1);
+        //     } else if (bill.frequency === 'biweekly') {
+        //         newDate.setDate(newDate.getDate() + 14);
+        //     } else if (bill.frequency === 'weekly') {
+        //         newDate.setDate(newDate.getDate() + 7);
+        //     }
+        //     bill.dueDate = newDate.toISOString().split('T')[0];
 
-        } else {
-            let newDate = new Date(bill.dueDate);
-            if (bill.frequency === 'monthly') {
-                newDate.setMonth(newDate.getMonth() - 1);
-            } else if (bill.frequency === 'biweekly') {
-                newDate.setDate(newDate.getDate() - 14);
-            } else if (bill.frequency === 'weekly') {
-                newDate.setDate(newDate.getDate() - 7);
-            }
-            bill.dueDate = newDate.toISOString().split('T')[0];
+        // } else {
+        //     let newDate = new Date(bill.dueDate);
+        //     if (bill.frequency === 'monthly') {
+        //         newDate.setMonth(newDate.getMonth() - 1);
+        //     } else if (bill.frequency === 'biweekly') {
+        //         newDate.setDate(newDate.getDate() - 14);
+        //     } else if (bill.frequency === 'weekly') {
+        //         newDate.setDate(newDate.getDate() - 7);
+        //     }
+        //     bill.dueDate = newDate.toISOString().split('T')[0];
 
-        }
+        // }
 
         //update temp bill state
         setTempBillState({
@@ -321,10 +327,17 @@ const BillPanel = () => {
 
     //create a function that changes the color of the bill based on whether it is paid or not
     const paidColor = (bill) => {
+        
         if (bill.paid) {
-            return 'bg-green-600';
-        } else if (bill.category === 'income') {
-            return 'bg-blue-600';
+            if(selectedItem === bill){
+                return 'bg-gray-700 text-gray-900 cursor-pointer hover:bg-gray-900 hover:text-gray-100';
+            }
+            return 'bg-gray-500 text-gray-700 hover:bg-gray-700 hover:text-gray-900 cursor-pointer';
+        } 
+        else if (selectedItem === bill) {
+            return 'bg-violet-700 text-violet-900 cursor-pointer hover:bg-violet-900 hover:text-violet-100';
+        }else if (bill.category === 'income') {
+            return 'bg-amber-200 text-amber-900 cursor-pointer hover:bg-amber-600 hover:text-amber-100';
         }
         else {
             return 'bg-violet-400';
@@ -335,14 +348,17 @@ const BillPanel = () => {
     const colors = ['bg-red-400', 'bg-yellow-400', 'bg-green-400', 'bg-blue-400', 'bg-indigo-400', 'bg-purple-400'];
     const colorFrequency = (bill) => {
         if (bill.category === 'income') {
-            return 'bg-amber-400';
+            return 'bg-lime-500';
+        }
+        else if (bill.paid) {
+            return 'bg-gray-700';
         }
         else if (bill.frequency === 'monthly') {
-            return 'bg-red-400';
+            return 'bg-amber-500';
         } else if (bill.frequency === 'biweekly') {
-            return 'bg-green-400';
+            return 'bg-indigo-600';
         } else if (bill.frequency === 'weekly') {
-            return 'bg-red-400';
+            return 'bg-rose-700';
         }
     }
 
@@ -367,8 +383,8 @@ const BillPanel = () => {
 
     // create a UI component that displays the list of combined bills
     const combinedBillList = combinedList.combined.map((bill, i) => (
-        <div className={`flex flex-row  h-15 w-5/6 ${paidColor(bill)} rounded-lg py-2 px-5 my-1 font-bold `}>
-            <div className={`h-4 w-4 rounded-full ${colorFrequency(bill)} mr-4`}></div>
+        <div className={`flex flex-row  h-15 w-5/6 ${paidColor(bill)} rounded-lg py-2 px-5 my-1 font-bold hover:bg-violet-600 hover:text-violet-900`} onClick={() => setSelectedItem(bill)}>
+            <div className={`h-4 w-4 rounded-full ${colorFrequency(bill)} mr-4 my-1`}></div>
             <div className="flex flex-row justify-between items-center w-5/6">
                 <p className="text-sm w-3/6 text-left"> {bill.name} </p>
                 <p className="text-sm w-1/6 text-left"> ${bill.amount} </p>
@@ -379,15 +395,74 @@ const BillPanel = () => {
                         id="checkbox"
                         checked={bill.paid}
                         onChange={() => changePaid(bill)}   
-                        className="form-checkbox h-5 w-5 accent-green-800"
+                        className="form-checkbox h-5 w-5 accent-gray-800"
                     />
                 ) : (
                     <div className="h-5 w-5"></div>
                 )}
-                
+
             </div>
         </div>
     ));
+
+
+    const initialIncomeInputBox = () => {
+        return(
+        <div className={`flex flex-row h-full w-5/6 bg-violet-500 rounded-lg items-center p-2 font-bold`}>
+            <div className={`h-4 w-4 rounded-full mr-4 my-1`}></div>
+            <div className="flex flex-row justify-end w-5/6">
+            <input
+                        className={`flex flex-row h-1/2 w-3/6 bg-violet-100 rounded-lg font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right pr-2 text-gray-400`}
+                        type="number"
+                        id="initial income amount"
+                        value={initialIncomeInput}
+                        onChange={(e) => setInitialIncomeInput(e.target.value)}
+                        placeholder="$0.00"
+            />
+
+            </div>
+        </div>
+        )
+    }
+     // create a function that calcuates the total amount of bills due until the selected bill is due
+     const calculateTotalUntilSelected = () => {
+        let total = 0;
+        for(let i = 0; i< billState.bills.length; i++){
+            if(billState.bills[i].dueDate <= selectedItem.dueDate && !billState.bills[i].paid){
+                total += billState.bills[i].amount;
+            }
+        }
+        return total;
+    }
+
+    // create a function to calcuate the difference between the total amount of bills and the total amount of income
+    const calculateDifference = () => {
+        let total = 0;
+        let income = 0;
+        for(let i = 0; i< combinedList.combined.length; i++){
+            if(combinedList.combined[i].category === 'expense' && !combinedList.combined[i].paid && combinedList.combined[i].dueDate <= selectedItem.dueDate){
+                total += combinedList.combined[i].amount;
+            }
+            else if(combinedList.combined[i].category === 'income' && combinedList.combined[i].dueDate <= selectedItem.dueDate){
+                income += combinedList.combined[i].amount;
+            }
+        }
+        return income - total;
+    }
+   
+    const balanceColor = () => {
+        if(calculateDifference() < 0){
+            return 'text-red-500';
+        }
+        else if(calculateDifference() > 0){
+            return 'text-lime-800';
+        }
+        else{
+            return 'text-gray-900';
+        }
+    }
+
+
 
 
     // return the bill panel component
@@ -402,7 +477,7 @@ const BillPanel = () => {
                 </div>
                 <div className="flex flex-row font-bold justify-start items-center h-1/12 w-full bg-violet-200 border-violet-300 border-b-2 border-l-2 py-2 px-5">
                     <p className="text-md w-5/6 text-left"> Total </p>
-                    <p className="text-md w-1/6 text-right"> ${totalBills()} </p>
+                    <p className="text-md w-1/6 text-right"> ${amountDue()} </p>
                 </div>
 
                 <div className="flex flex-col justify-center items-center h-1/2 w-full bg-violet-200 border-l-2 border-violet-300">
@@ -415,11 +490,15 @@ const BillPanel = () => {
                     <ExpenseFilter filterBills={filterBills} />
                 </div>
                 <div className="flex flex-col justify-start items-center h-full w-full bg-violet-200 border-violet-300 border-b-2 border-l-2 py-2 overflow-scroll">
+                    {initialIncomeInputBox()}
                     {combinedBillList}
                 </div>
                 <div className="flex flex-row font-bold justify-start items-center h-1/12 w-full bg-violet-200 border-violet-300 border-b-2 border-l-2 py-2 px-5">
-                    <p className="text-md w-5/6 text-left"> Total </p>
-                    <p className="text-md w-1/6 text-right"> ${totalBills()} </p>
+                    
+                    <p className="text-md w-5/6 text-left"> Amount Due </p>
+                    <p className="text-md w-1/6 text-right text-pink-900"> ${calculateTotalUntilSelected()} </p>
+                    <p className={`text-md w-5/6 text-center ${balanceColor()}`}> ${calculateDifference()} </p>
+                    <p className="text-md w-1/6 text-right"> ${amountDue()} </p>
                 </div>
 
                 <div className="flex flex-col justify-center items-center h-1/2 w-full bg-violet-200 border-l-2 border-violet-300">
