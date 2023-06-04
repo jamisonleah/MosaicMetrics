@@ -18,6 +18,11 @@ const BillPanel = () => {
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
+    // with two decimal places
+    function getRandomDollar(min, max) {
+        return (Math.random() * (max - min) + min).toFixed(2);
+    }
+
 
     function getRandomDate() {
         let start = new Date(2023, 5, 1);
@@ -38,7 +43,7 @@ const BillPanel = () => {
         for (let i = 0; i < names.length; i++) {
             let bill = {
                 name: names[i],
-                amount: getRandomInt(50, 500),
+                amount: getRandomDollar(50, 150),
                 dueDate: getRandomDate(),
                 paid: false,
                 frequency: getRandomFrequency(),
@@ -70,15 +75,16 @@ const BillPanel = () => {
         });
     }
 
-    //create a function to calculate the total amount of bills
+   // create a function with the amount due and not paid 
+   // for filters 
     const amountDue = () => {
         let total = 0;
         for (let i = 0; i < billState.bills.length; i++) {
-            if (billState.bills[i].paid === false) {
-                total += billState.bills[i].amount;
+            if (!billState.bills[i].paid) {
+                total += parseFloat(billState.bills[i].amount);
             }
         }
-        return total;
+        return total.toFixed(2);
     }
 
 
@@ -100,7 +106,7 @@ const BillPanel = () => {
      // initialize income state
      const [incomeState, setIncomeState] = useState({
         name: "income",
-        amount: 2000,
+        amount: 2000.00,
         dueDate: '2023-06-01',
         paid: false,
         frequency: 'biweekly',
@@ -386,7 +392,7 @@ const BillPanel = () => {
         <div className={`flex flex-row  h-15 w-5/6 ${paidColor(bill)} rounded-lg py-2 px-5 my-1 font-bold hover:bg-violet-600 hover:text-violet-900`} onClick={() => setSelectedItem(bill)}>
             <div className={`h-4 w-4 rounded-full ${colorFrequency(bill)} mr-4 my-1`}></div>
             <div className="flex flex-row justify-between items-center w-5/6">
-                <p className="text-sm w-3/6 text-left"> {bill.name} </p>
+                <p className="text-sm w-2/6 text-left"> {bill.name} </p>
                 <p className="text-sm w-1/6 text-left"> ${bill.amount} </p>
                 <p className="text-sm w-1/6 text-left"> {formatDate(bill.dueDate)} </p>
                {bill.category === 'expense' ? (
@@ -425,29 +431,31 @@ const BillPanel = () => {
         )
     }
      // create a function that calcuates the total amount of bills due until the selected bill is due
+     // the amount you need to pay before the selected bill is due
      const calculateTotalUntilSelected = () => {
         let total = 0;
         for(let i = 0; i< billState.bills.length; i++){
             if(billState.bills[i].dueDate <= selectedItem.dueDate && !billState.bills[i].paid){
-                total += billState.bills[i].amount;
+                total += parseFloat(billState.bills[i].amount);
             }
         }
-        return total;
+        return total.toFixed(2);
     }
 
     // create a function to calcuate the difference between the total amount of bills and the total amount of income
+    // The amount you have left over to spend
     const calculateDifference = () => {
         let total = 0;
         let income = 0;
         for(let i = 0; i< combinedList.combined.length; i++){
             if(combinedList.combined[i].category === 'expense' && !combinedList.combined[i].paid && combinedList.combined[i].dueDate <= selectedItem.dueDate){
-                total += combinedList.combined[i].amount;
+                total += parseFloat(combinedList.combined[i].amount);
             }
             else if(combinedList.combined[i].category === 'income' && combinedList.combined[i].dueDate <= selectedItem.dueDate){
-                income += combinedList.combined[i].amount;
+                income += parseFloat(combinedList.combined[i].amount);
             }
         }
-        return income - total;
+        return (income - total + parseFloat(initialIncomeInput)).toFixed(2);
     }
    
     const balanceColor = () => {

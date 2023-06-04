@@ -7,7 +7,7 @@ const IncomeHandler = ({incomeState, handleIncome}) => {
     //create a function to handle the bill form and returns the bill as an object with the name, amount, due date, frequency, and paid status
     const handleSubmit = () => {
         handleIncome({
-            amount: amount,
+            amount: parseFloat(amount),
             frequency: frequency,
             dueDate: dueDate
         });
