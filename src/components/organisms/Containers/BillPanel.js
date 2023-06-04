@@ -4,26 +4,61 @@ import React, { useState } from 'react';
 import BillForm from '../../atoms/BillForm';
 //import checkbox checked and unchecked icons
 import ExpenseFilter from '../../atoms/ExpenseFilter';
-import IncomeHandler from '../../atoms/IncomeHandler';
-
+import FormPanel from './FormPanel';
+import BillList from '../../BillAtoms/BillList';
+import Navigation from './Navigation';
 // create a function that stores a list of bills submitted by the user using the bill form component
 const BillPanel = () => {
 
+    const [mainState, setMainState] = useState({
+        home: false,
+        calendar: false,
+        bills: false,
+        profile: false,
+    });
+
+    //create a function to handle the main screen
+    const handleMain = (main) => {
+        setMainState({
+            home: false,
+            calendar: false,
+            bills: false,
+            profile: false,
+            [main]: true,
+        });
+    }
+
+    //create a function that greets the user based on the time of day in the header 
+    const greeting = () => {
+        let today = new Date();
+        let hour = today.getHours();
+        if (hour < 12) {
+            return "Good Morning";
+        }
+        else if (hour < 18) {
+            return "Good Afternoon";
+        }
+        else {
+            return "Good Evening";
+        }
+    }
+
+    // dependencies
+    // 1. FormPanel
+    // 2. ExpenseFilter
+
+
     const names = ['Rent', 'Car Payment', 'Car Insurance', 'Groceries', 'Utilities', 'Internet'];
     const [selectedItem, setSelectedItem] = useState({});
-    const [initialIncomeInput, setInitialIncomeInput] = useState(0);
+    const [initialIncomeInput, setInitialIncomeInput] = useState(0.00);
 
-    function getRandomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
     // with two decimal places
     function getRandomDollar(min, max) {
         return (Math.random() * (max - min) + min).toFixed(2);
     }
 
-
+    // get random date function
+    // return a random date between June 1st and June 30th
     function getRandomDate() {
         let start = new Date(2023, 5, 1);
         let end = new Date(2023, 5, 30);
@@ -32,12 +67,13 @@ const BillPanel = () => {
         return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString().split('T')[0];
     }
 
+    // get random frequency function
     function getRandomFrequency() {
         let frequency = ['monthly', 'biweekly', 'weekly'];
         return frequency[Math.floor(Math.random() * frequency.length)];
     }
 
-    //initialize a list of bills
+    //fucntion to initialize a list of bills
     const initialBillState = () => {
         let bills = [];
         for (let i = 0; i < names.length; i++) {
@@ -65,6 +101,10 @@ const BillPanel = () => {
     const handleBill = (bill) => {
         setBillState({
             bills: billState.bills.concat(bill),
+        });
+
+        setCombinedList({
+            combined: combinedList.combined.concat(bill).sort((a, b) => (a.dueDate > b.dueDate) ? 1 : -1),
         });
     }
 
@@ -146,7 +186,7 @@ const BillPanel = () => {
     const handleIncome = (income) => {
         const newIncomeState = {
             name: "income",
-            amount: income.amount,
+            amount: parseFloat(income.amount),
             dueDate: income.dueDate,
             paid: false,
             frequency: income.frequency,
@@ -165,31 +205,7 @@ const BillPanel = () => {
         });
     }
     
-  
-   
     
-
-   
-
-// 
-
-
-    // show income as blue and expenses regular color
-    const pillColor = (item) => {
-        if (item.category === 'income') {
-            return 'blue';
-        }
-        else {
-            return 'primary';
-        }
-    }
-    
-
-    
-    
-
-    const [incomeExpenseToggle, setIncomeExpenseToggle] = useState(true);
-
     //create function that takes in a text date (YYYY-MM-DD) and returns the first 3 letters of the month and the day
     const formatDate = (date) => {
         let month = date.slice(5, 7);
@@ -368,24 +384,6 @@ const BillPanel = () => {
         }
     }
 
-    // create a UI component that displays the list of bills
-    const billList = billState.bills.map((bill, i) => (
-        <div className={`flex flex-row  h-15 w-5/6 ${paidColor(bill)} rounded-lg py-2 px-5 my-1 font-bold `}>
-            <div className={`h-4 w-4 rounded-full ${colorFrequency(bill)} mr-4`}></div>
-            <div className="flex flex-row justify-between items-center w-5/6">
-                <p className="text-sm w-3/6 text-left"> {bill.name} </p>
-                <p className="text-sm w-1/6 text-left"> ${bill.amount} </p>
-                <p className="text-sm w-1/6 text-left"> {formatDate(bill.dueDate)} </p>
-                <input
-                    type="checkbox"
-                    id="checkbox"
-                    checked={bill.paid}
-                    onChange={() => changePaid(bill)}
-                    className="form-checkbox h-5 w-5 accent-green-800"
-                />
-            </div>
-        </div>
-    ));
 
     // create a UI component that displays the list of combined bills
     const combinedBillList = combinedList.combined.map((bill, i) => (
@@ -411,19 +409,20 @@ const BillPanel = () => {
         </div>
     ));
 
-
+    
     const initialIncomeInputBox = () => {
         return(
-        <div className={`flex flex-row h-full w-5/6 bg-violet-500 rounded-lg items-center p-2 font-bold`}>
-            <div className={`h-4 w-4 rounded-full mr-4 my-1`}></div>
-            <div className="flex flex-row justify-end w-5/6">
+        <div className={`flex flex-row h-full w-5/6 bg-violet-500 rounded-lg items-start p-2 font-bold`}>
+                <p className="text-center bg-violet-700 rounded-lg w-3/6"> Current Balance </p> 
+            <div className="flex flex-row justify-end w-3/6">
             <input
-                        className={`flex flex-row h-1/2 w-3/6 bg-violet-100 rounded-lg font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right pr-2 text-gray-400`}
+                        className={`flex flex-row h-1/2 w-5/6 bg-violet-100 rounded-lg font-bold focus:outline-none focus:ring-2 focus:ring-violet-600 focus:ring-opacity-50 text-right pr-2 text-gray-400`}
                         type="number"
                         id="initial income amount"
                         value={initialIncomeInput}
                         onChange={(e) => setInitialIncomeInput(e.target.value)}
-                        placeholder="$0.00"
+                        placeholder="0.00"
+
             />
 
             </div>
@@ -458,6 +457,7 @@ const BillPanel = () => {
         return (income - total + parseFloat(initialIncomeInput)).toFixed(2);
     }
    
+    // choose the color of the balance text
     const balanceColor = () => {
         if(calculateDifference() < 0){
             return 'text-red-500';
@@ -470,11 +470,9 @@ const BillPanel = () => {
         }
     }
 
-
-
-
     // return the bill panel component
-    return (
+    const billPanel = () => {
+        return(
         billState.bills.length === 0 ? (
             <div className="flex flex-col justify-center items-center h-full w-full  bg-lime-300 ">
                 <div className="flex flex-row font-bold justify-start items-center h-1/12 w-full bg-violet-200 border-violet-300 border-b-2 border-l-2 py-2 px-5">
@@ -489,35 +487,44 @@ const BillPanel = () => {
                 </div>
 
                 <div className="flex flex-col justify-center items-center h-1/2 w-full bg-violet-200 border-l-2 border-violet-300">
-                    <BillForm handleBill={handleBill} />
                 </div>
             </div>
         ) : (
-            <div className="flex flex-col justify-center items-center h-full w-full  bg-lime-300 ">
-                <div className="flex flex-row font-bold justify-start items-center h-1/12 w-full bg-violet-200 border-violet-300 border-b-2 border-l-2 py-2 px-5">
-                    <ExpenseFilter filterBills={filterBills} />
-                </div>
-                <div className="flex flex-col justify-start items-center h-full w-full bg-violet-200 border-violet-300 border-b-2 border-l-2 py-2 overflow-scroll">
-                    {initialIncomeInputBox()}
-                    {combinedBillList}
-                </div>
-                <div className="flex flex-row font-bold justify-start items-center h-1/12 w-full bg-violet-200 border-violet-300 border-b-2 border-l-2 py-2 px-5">
-                    
+            <div className="flex flex-col justify-start items-center h-full w-full bg-violet-200 ">
+                <BillList filterBills={filterBills} initialIncomeInputBox={initialIncomeInputBox} combinedBillList={combinedBillList} />
+                <div className="flex flex-row font-bold justify-start items-center  w-full bg-violet-200 py-2 px-5 border-violet-300 border-b-2 border-t-2">
                     <p className="text-md w-5/6 text-left"> Amount Due </p>
                     <p className="text-md w-1/6 text-right text-pink-900"> ${calculateTotalUntilSelected()} </p>
                     <p className={`text-md w-5/6 text-center ${balanceColor()}`}> ${calculateDifference()} </p>
                     <p className="text-md w-1/6 text-right"> ${amountDue()} </p>
                 </div>
 
-                <div className="flex flex-col justify-center items-center h-1/2 w-full bg-violet-200 border-l-2 border-violet-300">
-                       {incomeExpenseToggle ? <BillForm handleBill={handleBill} /> : <IncomeHandler handleIncome={handleIncome} incomeState={incomeState} />}
-                    
-                </div>
-                <button onClick={() => setIncomeExpenseToggle(!incomeExpenseToggle)}>Toggle</button>
 
             </div>
-
         )
-    );
+        )
+    }
+    return  (
+        <div className="flex flex-row h-screen bg-violet-200 text-black">
+        <Navigation />
+        <div className="flex flex-col w-screen">
+            <div className="flex flex-row py-3 bg-violet-200 border-violet-300 border-b-2 ">
+                <div className="flex flex-row pl-5 pt-1">
+                    <h1 className="text-xl"> {greeting()} Leah </h1>
+                </div>
+            </div>
+            <div className="flex flex-row justify-center items-center h-5/6 bg-violet-100">
+                <div className="flex flex-col justify-center items-center h-full w-10/12 bg-lime-300">
+                    {billPanel()}
+
+                </div>
+                <div className="flex flex-col justify-center items-center h-full w-3/6 bg-amber-300">
+                    <FormPanel handleBill={handleBill} handleIncome={handleIncome} incomeState={incomeState}/>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    )
 }
 export default BillPanel;

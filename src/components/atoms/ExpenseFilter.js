@@ -39,7 +39,7 @@ const ExpenseFilter = ({filterBills}) => {
 
     // return a div with buttons to filter expenses
     return (
-        <div className="flex flex-row justify-center items-center h-1/6 w-full bg-slate-400">
+        <div className="flex flex-row justify-center items-center h-1/6 w-full ">
             <button className={`${changeColor("all")} flex flex-col justify-center items-center `} onClick={() => handleExpenseFilter("all")}>
                 <p className="text-md px-6"> All </p>
             </button>

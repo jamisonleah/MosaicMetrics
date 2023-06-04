@@ -29,7 +29,7 @@ const Navigation = () => {
     // function to change background color of selected page
     const changeColor = (nav) => {
         if (navState[nav] === true) {
-            return "bg-violet-400 rounded-lg cursor-pointer";
+            return "bg-violet-400 cursor-pointer";
         }
         else {
             return "bg-violet-200 h-50 w-50 cursor-pointer";

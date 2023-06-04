@@ -14,6 +14,7 @@ const BillForm = (props) => {
       dueDate: dueDate,
       frequency: frequency,
       paid: false,
+      category: 'expense',
     });
     setBill('');
     setAmount('');
