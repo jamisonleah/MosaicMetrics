@@ -1,12 +1,10 @@
 //import react and useState
 import React, { useState } from 'react';
-//import the bill form component
-import BillForm from '../../atoms/BillForm';
 //import checkbox checked and unchecked icons
-import ExpenseFilter from '../../atoms/ExpenseFilter';
-import FormPanel from './FormPanel';
-import BillList from '../../BillAtoms/BillList';
-import Navigation from './Navigation';
+import ExpenseFilter from '../atoms/ExpenseFilter';
+import FormPanel from '../molecules/FormPanel';
+import BillList from '../molecules/BillList';
+import Navigation from '../atoms/Navigation';
 // create a function that stores a list of bills submitted by the user using the bill form component
 const BillPanel = () => {
 
@@ -27,6 +25,7 @@ const BillPanel = () => {
             [main]: true,
         });
     }
+
 
     //create a function that greets the user based on the time of day in the header 
     const greeting = () => {
@@ -169,7 +168,9 @@ const BillPanel = () => {
             baseDate = new Date(income.dueDate);
             
         }
+
         return incomes;
+
     }
 
       // initialize a list of incomes 
@@ -199,10 +200,23 @@ const BillPanel = () => {
         
         setIncomeState(newIncomeState);
         setIncomeStateList(newIncomeStateList);
+
+        function initializeCombinedList() {
+            let combined = [];
+            for (let i = 0; i < billState.bills.length; i++) {
+                combined.push(billState.bills[i]);
+            }
+            for (let i = 0; i < newIncomeStateList.incomes.length; i++) {
+                combined.push(newIncomeStateList.incomes[i]);
+            }
+            return combined;
+        }
     
         setCombinedList({
-            combined: billState.bills.concat(newIncomeStateList.incomes).sort((a, b) => (a.dueDate > b.dueDate) ? 1 : -1),
+            combined: initializeCombinedList().sort((a, b) => (a.dueDate > b.dueDate) ? 1 : -1),
         });
+
+
     }
     
     
@@ -304,34 +318,32 @@ const BillPanel = () => {
 
 
     }
-
+    const [tempCombinedList, setTempCombinedList] = useState({ combined: combinedList.combined });
+    const today = new Date();
+    const endDate2 = new Date(today);
+    endDate2.setDate(endDate2.getDate() + 30);
+    const [selectedDate, setSelectedDate] = useState(endDate2.toISOString().split('T')[0]);
     //create a function that filters the list of bills based on the filter selected and updates the useState of billList
-    const filterBills = (filter) => {
-        setBillState({
-            bills: [...tempBillState.bills],
-        });
-
+    const filterBills = (filter,date) => {
+       //set bills to bills from today to the date selected
+        setSelectedDate(date);
         //filter by date due order
         if (filter === 'ascending') {
-            setBillState({
-                bills: [...tempBillState.bills].sort((a, b) => {
-                    return a.dueDate > b.dueDate ? 1 : -1;
-                }),
-
-
+            setCombinedList({
+                combined: [...tempCombinedList.combined].filter((bill) => bill.dueDate <= selectedDate).sort((a, b) => (a.dueDate > b.dueDate) ? 1 : -1)
             });
         } else if (filter === 'paid') {
-            setBillState({
-                bills: [...tempBillState.bills].filter((bill) => bill.paid),
+            setCombinedList({
+                combined: [...tempCombinedList.combined].filter((bill) => bill.paid && bill.dueDate <= selectedDate)
             });
         } else if (filter === 'unpaid') {
-            setBillState({
-                bills: [...tempBillState.bills].filter((bill) => !bill.paid),
+            setCombinedList({
+                combined: [...tempCombinedList.combined].filter((bill) => !bill.paid && bill.dueDate <= selectedDate)
             });
         }
         else if (filter === 'all') {
-            setBillState({
-                bills: [...tempBillState.bills]
+            setCombinedList({
+                combined: [...tempCombinedList.combined].filter((bill) => bill.dueDate <= selectedDate)
             });
         }
         else {
@@ -339,10 +351,17 @@ const BillPanel = () => {
             let today = new Date();
             let twoWeeks = new Date(today.getTime() + (14 * 24 * 60 * 60 * 1000));
             let twoWeeksString = twoWeeks.toISOString().split('T')[0];
-            setBillState({
-                bills: [...tempBillState.bills].filter((bill) => bill.dueDate <= twoWeeksString),
+            setCombinedList({
+                 combined: [...tempCombinedList.combined].filter((bill) => bill.dueDate <= twoWeeksString && bill.dueDate >= today.toISOString().split('T')[0])
             });
         }
+
+       
+        
+
+        
+
+        
 
     };
 
@@ -412,7 +431,7 @@ const BillPanel = () => {
     
     const initialIncomeInputBox = () => {
         return(
-        <div className={`flex flex-row h-full w-5/6 bg-violet-500 rounded-lg items-start p-2 font-bold`}>
+        <div className={`flex flex-row  w-5/6 bg-violet-500 rounded-lg items-start p-2 font-bold`}>
                 <p className="text-center bg-violet-700 rounded-lg w-3/6"> Current Balance </p> 
             <div className="flex flex-row justify-end w-3/6">
             <input
@@ -474,7 +493,7 @@ const BillPanel = () => {
     const billPanel = () => {
         return(
         billState.bills.length === 0 ? (
-            <div className="flex flex-col justify-center items-center h-full w-full  bg-lime-300 ">
+            <div className="flex flex-col justify-center items-center h-full w-full bg-lime-300 ">
                 <div className="flex flex-row font-bold justify-start items-center h-1/12 w-full bg-violet-200 border-violet-300 border-b-2 border-l-2 py-2 px-5">
                     <ExpenseFilter filterBills={filterBills} />
                 </div>

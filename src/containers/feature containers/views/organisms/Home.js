@@ -4,10 +4,10 @@
 //import react libraries
 import React from 'react';
 import { useState } from 'react';
-import  Navigation  from './Navigation';
-import BillPanel from './BillPanel';
-import ExpenseFilter from '../../atoms/ExpenseFilter';
-import FormPanel from './FormPanel';
+import  Navigation  from '../atoms/Navigation';
+import BillPanel from './HomeView';
+import ExpenseFilter from '../atoms/ExpenseFilter';
+import FormPanel from '../molecules/FormPanel';
 
 
 const MainScreen = () => {

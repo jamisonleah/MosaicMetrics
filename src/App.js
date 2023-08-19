@@ -1,8 +1,5 @@
-import logo from './logo.svg';
 import './App.css';
-import BillForm from './components/atoms/BillForm';
-import Calendar from './components/atoms/Calendar';
-import HomeScreen from './components/organisms/Containers/Home';
+import HomeScreen from './containers/feature containers/views/organisms/Home';
 function App() {
   return (
     <div className="App font-Nunito">

@@ -1,9 +1,9 @@
 //import react and useState
 import React, { useState } from 'react';
 //import the bill form component
-import BillForm from '../../atoms/BillForm';
+import BillForm from '../atoms/BillForm';
 //import checkbox checked and unchecked icons
-import IncomeHandler from '../../atoms/IncomeHandler';
+import IncomeHandler from '../atoms/IncomeHandler';
 
 //create a form panel component
 
