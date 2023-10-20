@@ -7,8 +7,8 @@ import { useAuth } from "./AuthContext";
 // Custom AuthRoute component
 const AuthRoute = ({ children }) => {
     const { token } = useAuth();
-
-    if (!token) {
+    
+    if (token['access-token'] == null) {
       return <Navigate to="/signin" replace />;
     }
   

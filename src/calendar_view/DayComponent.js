@@ -15,15 +15,16 @@ import React from 'react';
 */
 function DayComponent(props) {
     const day = props.day;
+    const text_color = props.isPayday ? "text-green-500" : "text-black";
     if(props.today && props.sameMonth && props.sameYear) {
     return (
-        <div className="calendar-cell text-center border-4 border-lime-500 hover:bg-gray-300 hover:border-gray-300 hover:cursor-pointer rounded-full" key={day} onClick={() => props.setSelectedDate(day)}>
+        <div className={`calendar-cell text-center border-4 border-white hover:bg-gray-300 hover:cursor-pointer hover:border-gray-300 rounded-full ${text_color}`} key={day} onClick={() => props.setSelectedDate(day)}>
         <b> {day} </b>
       </div>
     );
     } else 
     return (
-        <div className="calendar-cell text-center border-4 border-white hover:bg-gray-300 hover:cursor-pointer hover:border-gray-300 rounded-full" key={day} onClick={() => props.setSelectedDate(day)}>
+        <div className={`calendar-cell text-center border-4 border-white hover:bg-gray-300 hover:cursor-pointer hover:border-gray-300 rounded-full ${text_color}`} key={day} onClick={() => props.setSelectedDate(day)}>
         {day}
       </div>
     );

@@ -1,104 +1,118 @@
-import React, { useState } from 'react';
-import DayComponent from './DayComponent';
-import { useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from './hooks/AuthContext';
-
+import { getBudget, initialBudget } from './hooks/BudgetController';
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
+  const { token } = useContext(AuthContext);
+  const [budget, setBudget] = useState(initialBudget);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const budgetData = await getBudget(token);
+        setBudget(budgetData);
+      } catch (error) {
+        console.error('Error fetching budget data', error);
+      }
+    };
 
-  //create a custome hook to consume the context 
-  const useAuth = () => useContext(AuthContext);
-  const { isloggedIn } = useAuth();
+    fetchData();
+  }, [token]);
 
   const daysInMonth = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    return new Date(year, month, 0).getDate();
-  };
-
-  const getMonthData = (date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month, daysInMonth(date));
-    const startDayOfWeek = firstDay.getDay();
-    const endDayOfWeek = lastDay.getDay();
-    return {
-      year,
-      month,
-      firstDay,
-      lastDay,
-      startDayOfWeek,
-      endDayOfWeek,
-    };
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   };
 
   /*
-    * This function is responsible for rendering the days of the month in the calendar.
-    * It uses the following global variables:
-    * - currentDate: the current date
-    * - setSelectedDate: function to call when a day is clicked
-    * 
+    getPaydays function
+    - Takes in an array of incomes and a selected month
+    - Returns an array of paydays for the selected month
   */
-  const renderDays = () => {
-    const monthData = getMonthData(currentDate);
-    const days = [];
-    let day = 1;
 
-    // Render blank cells for the days before the start of the month
-    for (let i = 0; i < monthData.startDayOfWeek; i++) {
-      days.push(<div className="calendar-cell empty-cell" key={`empty-${i}`}></div>);
-    }
+    const getPaydays = (incomes, selectedMonth) => {
+      const paydays = [];
+    
+      incomes.forEach((income) => {
+        const [year, month, day] = income.start_date.split('-').map(Number);
+        // Explicitly create a date object using local time
+        const startDate = new Date(year, month - 1, day); // months are 0-indexed
+        const endDate = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0); // Last day of the selected month
+    
+        let currentDate = startDate;
+    
+        // Loop through all paydays between the start date and the end date
+        while (currentDate <= endDate) {
+          if (currentDate.getMonth() === selectedMonth.getMonth()) {
+            paydays.push(new Date(currentDate)); // Clone the date to avoid mutations
+          }
+    
+          // Move to the next payday based on frequency
+          switch (income.frequency) {
+            case "Weekly":
+              currentDate.setDate(currentDate.getDate() + 7);
+              break;
+            case "Bi-Weekly":
+              currentDate.setDate(currentDate.getDate() + 14);
+              break;
+            case "Monthly":
+              currentDate.setMonth(currentDate.getMonth() + 1);
+              break;
+            default:
+              throw new Error(`Unsupported frequency: ${income.frequency}`);
+          }
+        }
+      });
+    
+      return paydays;
+    };
+    
+  
 
-    //check to see if it's todays date 
-    //get todays month and year
+  const markCalendar = (day, currentDate) => {
+    const incomes = budget['incomes'] || [];
+    const paydayDates = getPaydays(incomes, currentDate);
+
+    // some() returns true if at least one element in the array satisfies the condition
+    const isPayday = paydayDates.some((payday) =>
+      payday.getDate() === day &&
+      payday.getMonth() === currentDate.getMonth() &&
+      payday.getFullYear() === currentDate.getFullYear()
+    );
+
+    const dayClassName = isPayday ? 'text-lime-500' : 'text-black';
+
     const today = new Date();
-    const todayMonth = today.getMonth();
-    const todayYear = today.getFullYear();
+    const isToday = today.getDate() === day &&
+      today.getMonth() === currentDate.getMonth() &&
+      today.getFullYear() === currentDate.getFullYear();
 
-    //check to see if the month and year are the same as today
-    const sameMonth = todayMonth === monthData.month; 
-    const sameYear = todayYear === monthData.year;
-
-    // Render the days of the month
-    while (day <= daysInMonth(currentDate)) {
-        days.push(
-          <DayComponent day={day} setSelectedDate={setSelectedDate} key={day} today={currentDate.getDate() === day} sameMonth={sameMonth} sameYear={sameYear} />
-        );
-      day++;
-    }
-
-    // Render blank cells for the days after the end of the month
-    for (let i = 0; i < 6 - monthData.endDayOfWeek; i++) {
-      days.push(<div className="calendar-cell empty-cell" key={`empty-${i + monthData.endDayOfWeek}`}></div>);
-    }
-
-    return days;
+    return (
+      <div 
+        key={day} 
+        className={`text-center rounded-full border-4 ${isToday ? 'border-lime-500' : 'border-lime-900'} hover:bg-lime-300 hover:cursor-pointer hover:border-lime-300 ${dayClassName}`}
+        onClick={() => setSelectedDate(day)}
+      >
+        <span className={'text-center text-xl'}>{day}</span>
+      </div>
+    );
   };
-  // end of renderDays function
 
   const handlePrevMonth = () => {
-    const prevMonth = new Date(currentDate);
-    prevMonth.setMonth(prevMonth.getMonth() - 1);
-    setCurrentDate(prevMonth);
+    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1));
   };
 
   const handleNextMonth = () => {
-    const nextMonth = new Date(currentDate);
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
-    setCurrentDate(nextMonth);
+    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1));
   };
-
 
   return (
     <div className="flex w-1/2 h-full p-5 flex-row mx-auto border-2 border-black">
-      <div className=" w-full h-full p-5 bg-white shadow-lg rounded-lg">
+      <div className="w-full h-full p-5 bg-lime-900 shadow-lg rounded-lg">
         <div className="flex justify-between items-center mb-2">
           <button
-            className="text-zinc-900 hover:text-gray-700"
+            className="text-lime-100 font-bold hover:text-gray-700"
             onClick={handlePrevMonth}
           >
             &lt;
@@ -107,26 +121,20 @@ const Calendar = () => {
             {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </h2>
           <button
-            className="text-zinc-900 hover:text-gray-700"
+            className="text-lime-100 font-bold hover:text-gray-700"
             onClick={handleNextMonth}
           >
             &gt;
           </button>
         </div>
         <div className="grid grid-cols-7 gap-3 p-5 rounded-lg">
-          <div className="text-center text-zinc-700"> <b> Sun </b>  </div>
-          <div className="text-center text-zinc-700"> <b> Mon </b>  </div>
-          <div className="text-center text-zinc-700"> <b> Tue </b>  </div>
-          <div className="text-center text-zinc-700"> <b> Wed </b>  </div>
-          <div className="text-center text-zinc-700"> <b> Thu </b>  </div>
-          <div className="text-center text-zinc-700"> <b> Fri </b>  </div>
-          <div className="text-center text-zinc-700"> <b> Sat </b>  </div>
-          {renderDays()}
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => 
+            <div key={day} className="text-center text-lime-100"><b>{day}</b></div>
+          )}
+          {Array.from({ length: daysInMonth(currentDate) }).map((_, index) =>
+            markCalendar(index + 1, currentDate)
+          )}
         </div>
-      </div>
-      <div className="w-1/4 p-5 bg-white shadow-lg rounded-lg">
-        <h2 className="text-lg font-semibold"> Selected Date </h2>
-        <div className="text-center text-zinc-700"> {selectedDate} </div>
       </div>
     </div>
   );
