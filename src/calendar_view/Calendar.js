@@ -5,6 +5,7 @@ import ViewByDay from './ViewByDay';
 import IncomeBlock from './BudgetBlocks/IncomeBlock';
 import ExpenseBlock from './BudgetBlocks/ExpenseBlock';
 import AccountBlock from './BudgetBlocks/AccountBlock';
+import Navigation from './MainUXComponents/Navigation';
 
 /**
  * Calendar component that displays a monthly calendar with paydays marked based on budget data.
@@ -47,7 +48,7 @@ const Calendar = () => {
     return updatedTotalincome;
   };
 
- // This effect will run whenever the token changes
+  // This effect will run whenever the token changes
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -278,40 +279,46 @@ const Calendar = () => {
     setSelectedDayExpenses(getExpenseday(budget['expenses'], new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)));
   };
 
-
   return (
-    <div className="flex w-11/12 h-full p-5 flex-row mx-auto border-2 border-purple-700 bg-gray-900 text-white rounded-lg shadow-lg">
-      <div className="flex items-center w-1/2 h-1/2 mx-2 text-white ">
-        {renderAccountBlocks()}
-      </div>
-      <div className="w-full h-full p-5 bg-purple-900 shadow-lg rounded-lg">
+    <div className="flex flex-col w-11/12 h-full p-5 mx-auto border-2 border-purple-700 bg-gray-900 text-white rounded-lg shadow-lg">
+      <Navigation />
 
-        <div className="flex justify-between items-center mb-2">
-          <button
-            className="text-purple-200 font-bold hover:text-purple-400"
-            onClick={handlePrevMonth}
-          >
-            &lt;
-          </button>
-          <h2 className="text-xl font-semibold text-purple-100">
-            {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-          </h2>
-          <button
-            className="text-purple-200 font-bold hover:text-purple-400"
-            onClick={handleNextMonth}
-          >
-            &gt;
-          </button>
+      <div className="flex flex-row flex-grow mt-4">
+        <div className="flex flex-col w-1/2 h-full mx-2 text-white">
+          {renderAccountBlocks()}
         </div>
-        <div className="grid grid-cols-7 gap-3 p-5 rounded-lg">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day =>
-            <div key={day} className="text-center text-purple-300 font-semibold">{day}</div>
-          )}
-          {renderCalendar()}
+
+        <div className="flex flex-col w-full h-full p-5 bg-purple-900 shadow-lg rounded-lg">
+          <div className="flex justify-between items-center mb-2">
+            <button
+              className="text-purple-200 font-bold hover:text-purple-400"
+              onClick={handlePrevMonth}
+            >
+              &lt;
+            </button>
+            <h2 className="text-xl font-semibold text-purple-100">
+              {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </h2>
+            <button
+              className="text-purple-200 font-bold hover:text-purple-400"
+              onClick={handleNextMonth}
+            >
+              &gt;
+            </button>
+          </div>
+          <div className="grid grid-cols-7 gap-3 p-5 rounded-lg">
+            
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day =>
+                <div key={day} className="text-center text-purple-300 font-semibold">{day}</div>
+              )}
+              {renderCalendar()}
+            
+          </div>
         </div>
-      </div>
-      <div className="w-1/2 ml-4 bg-gray-800 p-4 rounded-lg shadow-lg">
-        <ViewByDay selectedDate={selectedDate} incomes={selectedDayIncomes} expenses={selectedDayExpenses} totalIncome={totalIncome} />
+
+        <div className="flex flex-col w-1/2 ml-4 bg-gray-800 p-4 rounded-lg shadow-lg">
+          <ViewByDay selectedDate={selectedDate} incomes={selectedDayIncomes} expenses={selectedDayExpenses} totalIncome={totalIncome} />
+        </div>
       </div>
     </div>
   );
