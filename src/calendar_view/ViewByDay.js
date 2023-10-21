@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import IncomeBlock from "./BudgetBlocks/IncomeBlock";
 import ExpenseBlock from "./BudgetBlocks/ExpenseBlock";
+import AccountBlock from "./BudgetBlocks/AccountBlock";
+import { render } from "@testing-library/react";
 /*
     props.incomes - An array of income objects.
     property {string} title - The title of the income.
@@ -18,6 +20,8 @@ import ExpenseBlock from "./BudgetBlocks/ExpenseBlock";
 */
 const ViewByDay = (props) => {
 
+   //visibileIncome is the sum of the props.accounts list balances 
+    const [netIncomeDay, setNetIncomeDay] = useState(0.00);
     const compareDates = (date1, date2) => {
         if (date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate()) {
             return true;
@@ -25,7 +29,6 @@ const ViewByDay = (props) => {
             return false;
         }
     }
-
     const checkIfSameDay = (income, status) => {
         if (status === "income") {
             if (compareDates(income.start_date, props.selectedDate)) {
@@ -34,7 +37,7 @@ const ViewByDay = (props) => {
                 return false;
             }
         } else if (status === "expense") {
-            if(compareDates(income.due_date, props.selectedDate)){
+            if (compareDates(income.due_date, props.selectedDate)) {
                 return true;
             } else {
                 return false;
@@ -42,20 +45,65 @@ const ViewByDay = (props) => {
         }
     }
 
+    const currentDate = new Date();
+
+
+    const checkIfBeforeSelectedDate = (income, status) => {
+        if (status === "income") {
+            //
+            if (income.start_date <= props.selectedDate && currentDate <= income.start_date) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (status === "expense") {
+            // 
+            if (income.due_date <= props.selectedDate && currentDate <= income.due_date) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+    //useEffect is a hook that runs after the render method is called
+    //
+    useEffect(() => {
+        setNetIncomeDay(calculateNetIncome());
+    }, [props.totalIncome, props.selectedDate]);
+
+
+
+  
     const renderBlocks = () => {
         const blocks = [];
         props.incomes.forEach((income) => {
             if (checkIfSameDay(income, "income")) {
-                blocks.push(<IncomeBlock income={income} />);
+                blocks.push(<IncomeBlock income={income} key={income.id}/>);
             }
         });
         props.expenses.forEach((expense) => {
             if (checkIfSameDay(expense, "expense")) {
-                blocks.push(<ExpenseBlock expense={expense} />);
+                blocks.push(<ExpenseBlock expense={expense} key={expense.id} />);
             }
         });
-
         return blocks;
+    }
+
+
+
+    const calculateNetIncome = () => {
+        let netIncome = 0;
+        props.incomes.forEach((income) => {
+            if (checkIfBeforeSelectedDate(income, "income")) {
+                netIncome += income.amount;
+            }
+        });
+        props.expenses.forEach((expense) => {
+            if (checkIfBeforeSelectedDate(expense, "expense")) {
+                netIncome -= expense.amount;
+            }
+        });
+        return netIncome + props.totalIncome;
     }
 
     const renderDate = () => {
@@ -65,14 +113,33 @@ const ViewByDay = (props) => {
             return props.selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
     }
-    
+
+   //function that calculates net income based on selected date and income/expenses taking from the account balance
+
+    const renderAccountIncomes = () => {
+       let netIncome = 0; 
+       props.accounts.forEach((account) => {
+           netIncome += account.balance;
+       });
+        return netIncome.toFixed(2);
+    }
 
     return (
-        <div className="p-2 m-2">
-            <h1 className="text-center text-2xl">View By Day</h1>
-            <h1 className="text-lime-900 font-bold text-center text-lg"> {renderDate()} </h1>
+        <div>
+
+            <h1 className="text-purple-100 font-bold text-center text-lg"> {renderDate()} </h1>
+
+
+            {/* Total Income */}
+            <div className="relative bottom-0 right-0 w-full h-1/2 p-3 bg-gray-800 text-white">
+                <div className="text-center">
+                    <h2 className="text-md font-bold mb-1">Total Income</h2>
+                    <p className="text-sm"> {props.totalIncome}</p>
+                </div>
+            </div>
             <div className="flex flex-wrap justify-center">
                 {renderBlocks()}
+                {calculateNetIncome() }
             </div>
         </div>
     );

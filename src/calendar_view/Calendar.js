@@ -4,24 +4,56 @@ import { getBudget, initialBudget } from './hooks/BudgetController';
 import ViewByDay from './ViewByDay';
 import IncomeBlock from './BudgetBlocks/IncomeBlock';
 import ExpenseBlock from './BudgetBlocks/ExpenseBlock';
+import AccountBlock from './BudgetBlocks/AccountBlock';
+
 /**
  * Calendar component that displays a monthly calendar with paydays marked based on budget data.
- * @returns {JSX.Element} The rendered Calendar component.
+ * 
  */
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedDayIncomes, setSelectedDayIncomes] = useState([]);
   const [selectedDayExpenses, setSelectedDayExpenses] = useState([]);
+  const [accountAmounts, setAccountAmounts] = useState([
+    {
+      id: 'checkings',
+      type: 'Checkings',
+      balance: 0,
+      description: 'Your checking account'
+    },
+    {
+      id: 'savings',
+      type: 'Savings',
+      balance: 0,
+      description: 'Your savings account'
+    }
+  ]);
+
   const { token } = useContext(AuthContext);
   const [budget, setBudget] = useState(initialBudget);
+  const [totalIncome, setTotalIncome] = useState(0.00);
 
+  const updateTotalIncome = (income) => {
+    let updatedTotalincome = 0.00;
+    accountAmounts.forEach((account) => {
+      if (account.id === income.id) {
+        updatedTotalincome += income.balance;
+      } else {
+        updatedTotalincome += account.balance;
+      }
+    });
+    setTotalIncome(updatedTotalincome);
+    return updatedTotalincome;
+  };
+
+ // This effect will run whenever the token changes
   useEffect(() => {
     const fetchData = async () => {
       try {
         const budgetData = await getBudget(token);
         setBudget(budgetData);
-        setSelectedDayIncomes(getPaydays(budgetData['incomes'], currentDate)); 
+        setSelectedDayIncomes(getPaydays(budgetData['incomes'], currentDate));
         setSelectedDayExpenses(getExpenseday(budgetData['expenses'], currentDate));
       } catch (error) {
         console.error('Error fetching budget data', error);
@@ -31,8 +63,41 @@ const Calendar = () => {
     fetchData();
   }, [token]);
 
+  // This effect will run whenever the accountAmounts change
+  useEffect(() => {
+    calculateIncome();
+  }, [accountAmounts]);
+
+
+  const updateAccountBalance = (updatedAccount) => {
+    setAccountAmounts(prevAccounts => {
+      return prevAccounts.map(account =>
+        account.id === updatedAccount.id ? updatedAccount : account
+      );
+    });
+  };
+
+  const renderAccountBlocks = () => {
+    return accountAmounts.map(account => (
+      <AccountBlock
+        key={account.id}
+        account={account}
+        updateTotalIncome={updateTotalIncome}
+        updateAccountBalance={updateAccountBalance}
+      />
+    ));
+  };
+  const calculateIncome = () => {
+    let income = 0;
+    accountAmounts.forEach((account) => {
+      income += account.balance;
+    });
+    setTotalIncome(income);
+    return income;
+  };
+
   const randomHashIdfunction = (date) => {
-    return Math.random().toString(36).substr(2, 9) + date;
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + date.getTime().toString(36);
   }
   /*
     getPaydays function
@@ -61,7 +126,7 @@ const Calendar = () => {
               description: income.description,
               start_date: new Date(currentDate) // Clone the date to avoid mutations
             }
-          ); 
+          );
         }
 
         // Move to the next payday based on frequency
@@ -83,7 +148,6 @@ const Calendar = () => {
 
     return paydays;
   };
-
   /*
     getExpenseday function
     - Takes in an array of expenses and a selected month
@@ -111,11 +175,10 @@ const Calendar = () => {
             due_date: new Date(currentDate) // Clone the date to avoid mutations
           });
           //add object to selectedDayExpenses
-          
+
         }
 
         // Move to the next payday based on frequency
-        
         switch (expense.frequency) {
           case "Weekly":
             currentDate.setDate(currentDate.getDate() + 7);
@@ -131,7 +194,6 @@ const Calendar = () => {
         }
       }
     });
-
     return expensedays;
   };
 
@@ -155,8 +217,8 @@ const Calendar = () => {
       expense.due_date.getFullYear() === currentDate.getFullYear()
     );
 
-    const dayClassPayday = isPayday ? 'text-lime-500' : 'text-black';
-    const dayClassExpense = isExpense ? 'text-red-500' : 'text-black';
+    const dayClassPayday = isPayday ? 'text-lime-500 font-bold' : isExpense ? 'font-bold text-rose-400' : 'text-purple-100';
+
 
     const today = new Date();
     const isToday = today.getDate() === day &&
@@ -168,13 +230,13 @@ const Calendar = () => {
     return (
       <div
         key={day}
-        className={`text-center rounded-full border-4 ${isToday ? 'border-lime-500' : 'border-lime-900'} hover:bg-lime-300 hover:cursor-pointer hover:border-lime-300 ${dayClassPayday} ${dayClassExpense}`}
+        className={`text-center rounded-full border-4 ${isToday ? 'border-purple-200' : 'border-purple-900'} hover:bg-purple-300 hover:cursor-pointer hover:border-purple-300 ${dayClassPayday}`}
         onClick={() => setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
       >
         <span className={'text-center text-xl'}>{day}</span>
       </div>
     );
-    
+
   };
 
   const renderCalendar = () => {
@@ -204,28 +266,38 @@ const Calendar = () => {
 
   const handlePrevMonth = () => {
     setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setSelectedDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    setSelectedDayIncomes(getPaydays(budget['incomes'], new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)));
+    setSelectedDayExpenses(getExpenseday(budget['expenses'], new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)));
   };
 
   const handleNextMonth = () => {
     setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    setSelectedDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    setSelectedDayIncomes(getPaydays(budget['incomes'], new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)));
+    setSelectedDayExpenses(getExpenseday(budget['expenses'], new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)));
   };
 
 
   return (
-    <div className="flex w-3/4 h-full p-5 flex-row mx-auto border-2 border-black">
-      <div className="w-full h-full p-5 bg-lime-900 shadow-lg rounded-lg">
+    <div className="flex w-11/12 h-full p-5 flex-row mx-auto border-2 border-purple-700 bg-gray-900 text-white rounded-lg shadow-lg">
+      <div className="flex items-center w-1/2 h-1/2 mx-2 text-white ">
+        {renderAccountBlocks()}
+      </div>
+      <div className="w-full h-full p-5 bg-purple-900 shadow-lg rounded-lg">
+
         <div className="flex justify-between items-center mb-2">
           <button
-            className="text-lime-100 font-bold hover:text-gray-700"
+            className="text-purple-200 font-bold hover:text-purple-400"
             onClick={handlePrevMonth}
           >
             &lt;
           </button>
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-xl font-semibold text-purple-100">
             {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </h2>
           <button
-            className="text-lime-100 font-bold hover:text-gray-700"
+            className="text-purple-200 font-bold hover:text-purple-400"
             onClick={handleNextMonth}
           >
             &gt;
@@ -233,17 +305,17 @@ const Calendar = () => {
         </div>
         <div className="grid grid-cols-7 gap-3 p-5 rounded-lg">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day =>
-            <div key={day} className="text-center text-lime-100"><b>{day}</b></div>
+            <div key={day} className="text-center text-purple-300 font-semibold">{day}</div>
           )}
           {renderCalendar()}
         </div>
       </div>
-      <div className="w-1/2"> 
-            <ViewByDay selectedDate={selectedDate} incomes={selectedDayIncomes} expenses={selectedDayExpenses}/>
-            
-      </div> 
+      <div className="w-1/2 ml-4 bg-gray-800 p-4 rounded-lg shadow-lg">
+        <ViewByDay selectedDate={selectedDate} incomes={selectedDayIncomes} expenses={selectedDayExpenses} totalIncome={totalIncome} />
+      </div>
     </div>
   );
 };
+
 
 export default Calendar;
