@@ -6,7 +6,7 @@ import IncomeBlock from './BudgetBlocks/IncomeBlock';
 import ExpenseBlock from './BudgetBlocks/ExpenseBlock';
 import AccountBlock from './BudgetBlocks/AccountBlock';
 import Navigation from './MainUXComponents/Navigation';
-
+import CalendarDisplay from './CalendarDisplay';
 /**
  * Calendar component that displays a monthly calendar with paydays marked based on budget data.
  * 
@@ -35,6 +35,9 @@ const Calendar = () => {
   const [budget, setBudget] = useState(initialBudget);
   const [totalIncome, setTotalIncome] = useState(0.00);
 
+
+  const [userAccount, setUserAccount] = useState([]);
+
   const updateTotalIncome = (income) => {
     let updatedTotalincome = 0.00;
     accountAmounts.forEach((account) => {
@@ -56,6 +59,7 @@ const Calendar = () => {
         setBudget(budgetData);
         setSelectedDayIncomes(getPaydays(budgetData['incomes'], currentDate));
         setSelectedDayExpenses(getExpenseday(budgetData['expenses'], currentDate));
+        setUserAccount(budgetData['user']);
       } catch (error) {
         console.error('Error fetching budget data', error);
       }
@@ -218,7 +222,7 @@ const Calendar = () => {
       expense.due_date.getFullYear() === currentDate.getFullYear()
     );
 
-    const dayClassPayday = isPayday ? 'text-lime-500 font-bold' : isExpense ? 'font-bold text-rose-400' : 'text-purple-100';
+    const dayClassPayday = isPayday ? 'text-lime-500 font-bold' : isExpense ? 'font-bold text-rose-400' : 'text-violet-100';
 
 
     const today = new Date();
@@ -231,7 +235,7 @@ const Calendar = () => {
     return (
       <div
         key={day}
-        className={`text-center rounded-full border-4 ${isToday ? 'border-purple-200' : 'border-purple-900'} hover:bg-purple-300 hover:cursor-pointer hover:border-purple-300 ${dayClassPayday}`}
+        className={`text-center rounded-full border-4 ${isToday ? 'border-violet-200 font-bold' : 'border-violet-500'} hover:bg-violet-300 hover:cursor-pointer hover:border-violet-300 ${dayClassPayday}`}
         onClick={() => setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
       >
         <span className={'text-center text-xl'}>{day}</span>
@@ -280,41 +284,20 @@ const Calendar = () => {
   };
 
   return (
-    <div className="flex flex-col w-11/12 h-full p-5 mx-auto border-2 border-purple-700 bg-gray-900 text-white rounded-lg shadow-lg">
-      <Navigation />
+    <div className="flex flex-col w-11/12 h-full p-5 mx-auto border-2 border-violet-500 bg-gray-900 text-white rounded-lg shadow-lg font-Nunito">
+      <Navigation userAccount={userAccount} />
 
       <div className="flex flex-row flex-grow mt-4">
-        <div className="flex flex-col w-1/2 h-full mx-2 text-white">
+        <div className="flex flex-col w-1/3 h-full mx-2 text-white">
           {renderAccountBlocks()}
         </div>
 
-        <div className="flex flex-col w-full h-full p-5 bg-purple-900 shadow-lg rounded-lg">
-          <div className="flex justify-between items-center mb-2">
-            <button
-              className="text-purple-200 font-bold hover:text-purple-400"
-              onClick={handlePrevMonth}
-            >
-              &lt;
-            </button>
-            <h2 className="text-xl font-semibold text-purple-100">
-              {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </h2>
-            <button
-              className="text-purple-200 font-bold hover:text-purple-400"
-              onClick={handleNextMonth}
-            >
-              &gt;
-            </button>
-          </div>
-          <div className="grid grid-cols-7 gap-3 p-5 rounded-lg">
-            
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day =>
-                <div key={day} className="text-center text-purple-300 font-semibold">{day}</div>
-              )}
-              {renderCalendar()}
-            
-          </div>
-        </div>
+        <CalendarDisplay
+          currentDate={currentDate}
+          handlePrevMonth={handlePrevMonth}
+          handleNextMonth={handleNextMonth}
+          renderCalendar={renderCalendar}
+        />
 
         <div className="flex flex-col w-1/2 ml-4 bg-gray-800 p-4 rounded-lg shadow-lg">
           <ViewByDay selectedDate={selectedDate} incomes={selectedDayIncomes} expenses={selectedDayExpenses} totalIncome={totalIncome} />

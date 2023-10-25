@@ -19,7 +19,7 @@ const AccountBlock = ({ account, updateTotalIncome, updateAccountBalance }) => {
     };
 
     return (
-        <div className="flex flex-col items-center w-1/2 h-1/2 p-4 m-2 bg-cyan-200 text-cyan-900 rounded-lg shadow-md font-Nunito">
+        <div className="flex flex-col items-center w-4/5 h-1/2 p-4 m-2 bg-cyan-200 text-cyan-900 rounded-lg shadow-md font-Nunito">
 
             <h2 className="text-md font-bold underline">{account.type}</h2> {/* Either 'Checkings' or 'Savings' */}
 

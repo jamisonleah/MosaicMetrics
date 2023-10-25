@@ -131,15 +131,17 @@ const ViewByDay = (props) => {
 
 
             {/* Total Income */}
-            <div className="relative bottom-0 right-0 w-full h-1/2 p-3 bg-gray-800 text-white">
+            <div className="relative bottom-0 right-0 w-full h-auto p-3 bg-gray-800 text-white">
                 <div className="text-center">
                     <h2 className="text-md font-bold mb-1">Total Income</h2>
                     <p className="text-sm"> {props.totalIncome}</p>
                 </div>
             </div>
-            <div className="flex flex-wrap justify-center">
+            <div className="relative bottom-0 right-0 w-full h-1/2 p-3 bg-gray-800 text-white">
                 {renderBlocks()}
-                {calculateNetIncome() }
+                <div className="text-4xl text-center"> 
+                    {calculateNetIncome().toFixed(2) }
+                </div> 
             </div>
         </div>
     );
