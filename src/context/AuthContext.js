@@ -1,7 +1,9 @@
 //Create a new context
 import { createContext, useContext, useState } from 'react';
+import { API_URL } from '../constants/Constants';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { getBudget } from '../services/backend_api/BudgetController';
 
 //Create a context object
 export const AuthContext = createContext();
@@ -31,13 +33,12 @@ export const AuthProvider = (props) => {
       "token-type": null,
       "uid": null
     });
-
-  const [data, setData] = useState(null);
+  const [budget, setBudget] = useState(null);
   const [error, setError] = useState(null);
-
+  
   const login = async (email, password) => {
     const token_response = await getToken(email, password);
-    if (token_response.status === 401) {
+    if (token_response['status'] !== 200) {
       setError("Invalid email or password");
     }
     else {
@@ -49,21 +50,19 @@ export const AuthProvider = (props) => {
           "token-type": token_response['headers']["token-type"],
           "uid": token_response['headers']["uid"]
         });
-      setData(token_response['data']);
+        setBudget(await getBudget(token_response['headers']));
     }
     navigate('/');
   };
-
   const logout = () => {
     setToken(null);
     navigate('/signin');
   };
-
-
-
   const authContextValue = {
     token,
+    budget,
     error,
+    setBudget,
     onLogin: login,
     ongLogout: logout,
   };

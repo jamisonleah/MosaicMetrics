@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Navigation from './Navigation';
 import { AuthContext } from '../context/AuthContext';
-import { getBudget } from '../services/backend_api/BudgetController';
 import ViewByDay from './calendar/Day/ViewByDay';
 import CalendarDisplay from './calendar/CalendarDisplay';
 import AccountBlock from './budgetBlocks/AccountBlock';
@@ -12,6 +11,7 @@ import { getPaydays, getExpenseday } from '../utils/budgetUtils';
  * 
  */
 const Dashboard = () => {
+  const { token, budget } = useContext(AuthContext);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -32,8 +32,6 @@ const Dashboard = () => {
     }
   ]);
 
-  const { token } = useContext(AuthContext);
-  const [budget, setBudget] = useState([]);
   const [totalIncome, setTotalIncome] = useState(0.00);
   const [userAccount, setUserAccount] = useState([]);
 
@@ -41,18 +39,16 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const budgetData = await getBudget(token);
-        setBudget(budgetData);
-        setSelectedDayIncomes(getPaydays(budgetData['incomes'], currentDate));
-        setSelectedDayExpenses(getExpenseday(budgetData['expenses'], currentDate));
-        setUserAccount(budgetData['user']);
+        setSelectedDayIncomes(getPaydays(budget['incomes'], currentDate));
+        setSelectedDayExpenses(getExpenseday(budget['expenses'], currentDate));
+        setUserAccount(budget['user']);
       } catch (error) {
         console.error('Error fetching budget data', error);
       }
     };
 
     fetchData();
-  }, [token, currentDate]);
+  }, [token, budget, currentDate]);
 
   // This effect will run whenever the accountAmounts change
   useEffect(() => {
@@ -161,13 +157,21 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex flex-col w-11/12 h-full p-5 mx-auto border-2 border-violet-500 bg-gray-900 text-white rounded-lg shadow-lg font-Nunito">
+    <div className="flex flex-col w-11/12 h-full p-5 mx-auto border-2 border-violet-900 bg-gray-900 text-white rounded-lg shadow-lg font-Nunito">
       <Navigation userAccount={userAccount} />
 
       <div className="flex flex-row flex-grow mt-4">
-        <div className="flex flex-col w-1/3 h-full mx-2 text-white">
-          {renderAccountBlocks()}
+
+        <div className='flex flex-col w-1/4 h-full mx-5 text-white'>
+          <div className=" text-white text-center">
+            <h2> Total Income </h2>
+            <h2 className="ml-2 font-bold text-lg">${totalIncome.toFixed(2)}</h2>
+          </div>
+          <div className="flex flex-col w-full h-full text-white items-center">
+            {renderAccountBlocks()}
+          </div>
         </div>
+
 
         <CalendarDisplay
           currentDate={currentDate}

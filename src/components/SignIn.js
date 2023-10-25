@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom'; // Note: useNavigation was chang
 import { useAuth } from '../context/AuthContext';
 const SignIn = (props) => {
    
-
-    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const { onLogin, error} = useAuth();

@@ -1,5 +1,6 @@
 import axios from "axios";
 
+
 export const getBudget = async (token) => {
   try {
     const response = await axios.get("http://localhost:3001/me", {
@@ -17,13 +18,7 @@ export const getBudget = async (token) => {
   }
 };
 
-// Define an initial budget state or default values
-export const initialBudget = {
-  id: null,
-  user_id: null,
-  income: null,
-  expenses: null,
-};
+
 
 
 
