@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { AuthContext } from './hooks/AuthContext';
-import { getBudget, initialBudget } from './hooks/BudgetController';
-import ViewByDay from './ViewByDay';
-import IncomeBlock from './BudgetBlocks/IncomeBlock';
-import ExpenseBlock from './BudgetBlocks/ExpenseBlock';
-import AccountBlock from './BudgetBlocks/AccountBlock';
-import Navigation from './MainUXComponents/Navigation';
-import CalendarDisplay from './CalendarDisplay';
+import Navigation from './Navigation';
+import { AuthContext } from '../context/AuthContext';
+import { getBudget } from '../services/backend_api/BudgetController';
+import ViewByDay from './calendar/Day/ViewByDay';
+import CalendarDisplay from './calendar/CalendarDisplay';
+import AccountBlock from './budgetBlocks/AccountBlock';
+import { calculateIncome, updateTotalIncome } from '../utils/incomeUtils';
+import { getPaydays, getExpenseday } from '../utils/budgetUtils';
 /**
  * Calendar component that displays a monthly calendar with paydays marked based on budget data.
  * 
  */
-const Calendar = () => {
+const Dashboard = () => {
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedDayIncomes, setSelectedDayIncomes] = useState([]);
@@ -32,24 +33,9 @@ const Calendar = () => {
   ]);
 
   const { token } = useContext(AuthContext);
-  const [budget, setBudget] = useState(initialBudget);
+  const [budget, setBudget] = useState([]);
   const [totalIncome, setTotalIncome] = useState(0.00);
-
-
   const [userAccount, setUserAccount] = useState([]);
-
-  const updateTotalIncome = (income) => {
-    let updatedTotalincome = 0.00;
-    accountAmounts.forEach((account) => {
-      if (account.id === income.id) {
-        updatedTotalincome += income.balance;
-      } else {
-        updatedTotalincome += account.balance;
-      }
-    });
-    setTotalIncome(updatedTotalincome);
-    return updatedTotalincome;
-  };
 
   // This effect will run whenever the token changes
   useEffect(() => {
@@ -66,11 +52,11 @@ const Calendar = () => {
     };
 
     fetchData();
-  }, [token]);
+  }, [token, currentDate]);
 
   // This effect will run whenever the accountAmounts change
   useEffect(() => {
-    calculateIncome();
+    calculateIncome(accountAmounts, setTotalIncome);
   }, [accountAmounts]);
 
 
@@ -92,115 +78,7 @@ const Calendar = () => {
       />
     ));
   };
-  const calculateIncome = () => {
-    let income = 0;
-    accountAmounts.forEach((account) => {
-      income += account.balance;
-    });
-    setTotalIncome(income);
-    return income;
-  };
 
-  const randomHashIdfunction = (date) => {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + date.getTime().toString(36);
-  }
-  /*
-    getPaydays function
-    - Takes in an array of incomes and a selected month
-    - Returns an array of Date objects that represent paydays for the selected month
-  */
-  const getPaydays = (incomes, selectedMonth) => {
-    const paydays = [];
-
-    incomes.forEach((income) => {
-      const [year, month, day] = income.start_date.split('-').map(Number);
-      // Explicitly create a date object using local time
-      const startDate = new Date(year, month - 1, day); // months are 0-indexed
-      const endDate = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0); // Last day of the selected month
-
-      let currentDate = startDate;
-
-      // Loop through all paydays between the start date and the end date
-      while (currentDate <= endDate) {
-        if (currentDate.getMonth() === selectedMonth.getMonth()) {
-          paydays.push(
-            {
-              id: randomHashIdfunction(currentDate),
-              name: income.title,
-              amount: income.amount,
-              description: income.description,
-              start_date: new Date(currentDate) // Clone the date to avoid mutations
-            }
-          );
-        }
-
-        // Move to the next payday based on frequency
-        switch (income.frequency) {
-          case "Weekly":
-            currentDate.setDate(currentDate.getDate() + 7);
-            break;
-          case "Bi-Weekly":
-            currentDate.setDate(currentDate.getDate() + 14);
-            break;
-          case "Monthly":
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            break;
-          default:
-            throw new Error(`Unsupported frequency: ${income.frequency}`);
-        }
-      }
-    });
-
-    return paydays;
-  };
-  /*
-    getExpenseday function
-    - Takes in an array of expenses and a selected month
-    - Returns an array of Date objects that represent paydays for the selected month
-  */
-  const getExpenseday = (expenses, selectedMonth) => {
-    const expensedays = [];
-
-    expenses.forEach((expense) => {
-      const [year, month, day] = expense.due_date.split('-').map(Number);
-      // Explicitly create a date object using local time
-      const startDate = new Date(year, month - 1, day); // months are 0-indexed
-      const endDate = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0); // Last day of the selected month
-
-      let currentDate = startDate;
-
-      // Loop through all paydays between the start date and the end date
-      while (currentDate <= endDate) {
-        if (currentDate.getMonth() === selectedMonth.getMonth()) {
-          expensedays.push({
-            id: expense.id,
-            name: expense.name,
-            amount: expense.amount,
-            description: expense.description,
-            due_date: new Date(currentDate) // Clone the date to avoid mutations
-          });
-          //add object to selectedDayExpenses
-
-        }
-
-        // Move to the next payday based on frequency
-        switch (expense.frequency) {
-          case "Weekly":
-            currentDate.setDate(currentDate.getDate() + 7);
-            break;
-          case "Bi-Weekly":
-            currentDate.setDate(currentDate.getDate() + 14);
-            break;
-          case "Monthly":
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            break;
-          default:
-            throw new Error(`Unsupported frequency: ${expense.frequency}`);
-        }
-      }
-    });
-    return expensedays;
-  };
 
   const markCalendar = (day, currentDate) => {
     const incomes = budget['incomes'] || [];
@@ -231,7 +109,6 @@ const Calendar = () => {
       today.getFullYear() === currentDate.getFullYear();
 
     //date thats being rendered
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
     return (
       <div
         key={day}
@@ -308,4 +185,4 @@ const Calendar = () => {
 };
 
 
-export default Calendar;
+export default Dashboard;

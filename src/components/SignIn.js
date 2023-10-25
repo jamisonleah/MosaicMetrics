@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // Note: useNavigation was changed to useHistory, which is commonly used in `react-router-dom`
-import { useAuth } from './hooks/AuthContext';
+import { useAuth } from '../context/AuthContext';
 const SignIn = (props) => {
    
 

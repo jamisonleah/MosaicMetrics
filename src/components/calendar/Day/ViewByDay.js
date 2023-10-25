@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import IncomeBlock from "./BudgetBlocks/IncomeBlock";
-import ExpenseBlock from "./BudgetBlocks/ExpenseBlock";
-import AccountBlock from "./BudgetBlocks/AccountBlock";
-import { render } from "@testing-library/react";
+import IncomeBlock from "../../budgetBlocks/IncomeBlock";
+import ExpenseBlock from "../../budgetBlocks/ExpenseBlock";
 /*
     props.incomes - An array of income objects.
     property {string} title - The title of the income.
