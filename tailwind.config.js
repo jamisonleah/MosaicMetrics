@@ -8,6 +8,10 @@ module.exports = {
         Nunito: ['Nunito', "sans-serif"],
         Rubik: ['Rubik Moonrocks', "cursive"]
     },
+    colors: {
+      'money-green': "#B3B06C"
+    }
+    
   },
   plugins: [],
 }

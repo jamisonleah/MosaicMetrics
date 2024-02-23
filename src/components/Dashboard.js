@@ -11,7 +11,7 @@ import { getPaydays, getExpenseday } from '../utils/budgetUtils';
  * 
  */
 const Dashboard = () => {
-  const { token, budget } = useContext(AuthContext);
+  const { token, budget, currentPage, setCurrentPage } = useContext(AuthContext);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -48,7 +48,8 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, [token, budget, currentDate]);
+    //below is the dependency array which means 
+  }, [token, budget, currentDate, currentPage]);
 
   // This effect will run whenever the accountAmounts change
   useEffect(() => {
@@ -96,7 +97,7 @@ const Dashboard = () => {
       expense.due_date.getFullYear() === currentDate.getFullYear()
     );
 
-    const dayClassPayday = isPayday ? 'text-lime-500 font-bold' : isExpense ? 'font-bold text-rose-400' : 'text-violet-100';
+    const dayClassPayday = isPayday ? 'text-white font-bold bg-money-green' : isExpense ? 'font-bold text-rose-400' : 'text-violet-100';
 
 
     const today = new Date();
@@ -124,7 +125,7 @@ const Dashboard = () => {
 
     // create blank days for the beginning of the calendar
     for (let i = 0; i < firstDay.getDay(); i++) {
-      calendar.push(<div className="text-center text-lime-100" key={`blank-start-${i}`}></div>);
+      calendar.push(<div key={`blank-start-${i}`}></div>);
     }
 
     // create days for the month
@@ -158,7 +159,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex flex-col w-11/12 h-full p-5 mx-auto border-2 border-violet-900 bg-gray-900 text-white rounded-lg shadow-lg font-Nunito">
-      <Navigation userAccount={userAccount} />
+      <Navigation userAccount={userAccount}  currentPage={currentPage} setCurrentPage={setCurrentPage} />
 
       <div className="flex flex-row flex-grow mt-4">
 

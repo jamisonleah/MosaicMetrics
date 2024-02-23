@@ -73,14 +73,14 @@ export const getExpenseday = (expenses, selectedMonth) => {
       }
 
       // Move to the next payday based on frequency
-      switch (expense.frequency) {
-        case "Weekly":
+      switch (expense.frequency.toLowerCase()) {
+        case "weekly":
           currentDate.setDate(currentDate.getDate() + 7);
           break;
-        case "Bi-Weekly":
+        case "bi-weekly":
           currentDate.setDate(currentDate.getDate() + 14);
           break;
-        case "Monthly":
+        case "monthly":
           currentDate.setMonth(currentDate.getMonth() + 1);
           break;
         default:

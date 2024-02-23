@@ -31,10 +31,11 @@ export const AuthProvider = (props) => {
       "client": null,
       "expiry": null,
       "token-type": null,
-      "uid": null
+      "uid": null,
     });
   const [budget, setBudget] = useState(null);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState("calendar");
   
   const login = async (email, password) => {
     const token_response = await getToken(email, password);
@@ -49,6 +50,7 @@ export const AuthProvider = (props) => {
           "expiry": token_response['headers']["expiry"],
           "token-type": token_response['headers']["token-type"],
           "uid": token_response['headers']["uid"]
+            
         });
         setBudget(await getBudget(token_response['headers']));
     }
@@ -60,7 +62,10 @@ export const AuthProvider = (props) => {
   };
   const authContextValue = {
     token,
+    setToken,
     budget,
+    currentPage,
+    setCurrentPage,
     error,
     setBudget,
     onLogin: login,

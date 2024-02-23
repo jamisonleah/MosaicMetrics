@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const Navigation = ({userAccount}) => {
-    const [currentPage, setCurrentPage] = useState("calendar");
+const Navigation = ({userAccount, currentPage, setCurrentPage}) => {
+    const navigate = useNavigate();
 
     const handlePageChange = (page) => {
         setCurrentPage(page);
+        navigate(page);
     };
 
     const handleLogout = () => {
@@ -16,20 +18,20 @@ const Navigation = ({userAccount}) => {
             {/* Create Horizontal Navigation Bar */}
             <div>
                 <button 
-                    onClick={() => handlePageChange("calendar")} 
-                    className={`mx-4 py-2 px-6 rounded ${currentPage === "calendar" ? "bg-gray-700" : ""}`}
+                    onClick={() => handlePageChange("/")} 
+                    className={`mx-4 py-2 px-6 rounded ${currentPage === "/" ? "bg-gray-700" : ""}`}
                 >
                     Calendar
                 </button>
                 <button 
-                    onClick={() => handlePageChange("reports")} 
-                    className={`mx-4 py-2 px-6 rounded ${currentPage === "reports" ? "bg-gray-700" : ""}`}
+                    onClick={() => handlePageChange("/reports")} 
+                    className={`mx-4 py-2 px-6 rounded ${currentPage === "/reports" ? "bg-gray-700" : ""}`}
                 >
                     Reports
                 </button>
                 <button 
-                    onClick={() => handlePageChange("settings")} 
-                    className={`mx-4 py-2 px-6 rounded ${currentPage === "settings" ? "bg-gray-700" : ""}`}
+                    onClick={() => handlePageChange("/settings")} 
+                    className={`mx-4 py-2 px-6 rounded ${currentPage === "/settings" ? "bg-gray-700" : ""}`}
                 >
                     Settings
                 </button>
